@@ -1,8 +1,43 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AI OCR Tool
+
+A web application that uses Mistral AI's OCR capabilities to extract text from images and PDF documents.
+
+## Features
+
+- Upload images (JPEG, PNG) and PDF files
+- Extract text content using Mistral AI's OCR API
+- Display results in markdown format
+- Responsive UI for all device sizes
+
+## Project Structure
+
+```
+/src
+  /app             # Next.js app router
+    /api           # API routes
+      /ocr         # OCR processing endpoint
+    page.tsx       # Main application page
+    layout.tsx     # Root layout
+  /lib             # Utility libraries
+    /hooks         # React custom hooks
+    /services      # Service modules
+```
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+ and npm
+- Mistral AI API key
+
+### Setup
+
+1. Create a `.env` file in the root directory with your Mistral API key:
+   ```
+   MISTRAL_API_KEY=your_api_key_here
+   ```
+
+2. Run the development server:
 
 ```bash
 npm run dev
