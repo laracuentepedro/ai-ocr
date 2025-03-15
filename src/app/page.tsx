@@ -9,6 +9,7 @@ export default function Home() {
   const [isUploading, setIsUploading] = useState(false);
   const [markdownResult, setMarkdownResult] = useState<string | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
+  const [showRendered, setShowRendered] = useState(true);
   
   const {
     file,
@@ -47,6 +48,10 @@ export default function Home() {
     setApiError(null);
   };
 
+  const toggleMarkdownView = () => {
+    setShowRendered(!showRendered);
+  };
+
   return (
     <div className="min-h-screen p-4 sm:p-6 md:p-8 lg:p-12 font-[family-name:var(--font-geist-sans)]">
       <header className="mb-8 md:mb-12 text-center max-w-3xl mx-auto">
@@ -54,8 +59,8 @@ export default function Home() {
         <p className="text-gray-600 dark:text-gray-400 text-lg">Upload an image or PDF to extract text as markdown</p>
       </header>
 
-      <main className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 lg:gap-12">
-        <section className="flex flex-col gap-6 h-full">
+      <main className="max-w-3xl mx-auto flex flex-col gap-6 md:gap-8">
+        <section className="flex flex-col gap-6 w-full">
           <div 
             className={`border-2 border-dashed rounded-lg p-6 md:p-8 flex flex-col items-center justify-center min-h-64 md:min-h-80 cursor-pointer transition-colors ${error || apiError ? 'border-red-400 bg-red-50 dark:bg-red-950/20' : 'border-gray-300 hover:border-gray-400 dark:border-gray-700 dark:hover:border-gray-600'}`}
             onDragOver={handleDragOver}
@@ -106,32 +111,36 @@ export default function Home() {
           )}
         </section>
 
-        <section className="flex flex-col gap-4 h-full">
-          <h2 className="text-xl md:text-2xl font-semibold mb-4">Preview & Results</h2>
-          
-          {preview ? (
-            <div className="border rounded-lg overflow-hidden mb-4 bg-white dark:bg-gray-800 shadow-sm">
-              <img src={preview} alt="Preview" className="w-full object-contain h-64 md:h-80" />
-            </div>
-          ) : file ? (
-            <div className="border rounded-lg p-6 mb-4 flex items-center justify-center bg-gray-50 dark:bg-gray-900 h-64 md:h-80 shadow-sm">
-              <p className="text-gray-500 text-lg">{file.name} (PDF preview not available)</p>
-            </div>
-          ) : (
-            <div className="border rounded-lg p-6 mb-4 flex items-center justify-center bg-gray-50 dark:bg-gray-900 h-64 md:h-80 shadow-sm">
-              <p className="text-gray-500 text-lg">No file selected</p>
-            </div>
-          )}
-
-          {markdownResult && (
-            <div className="border rounded-lg p-6 bg-white dark:bg-gray-900 shadow-sm">
-              <h3 className="text-lg md:text-xl font-medium mb-3">Extracted Markdown</h3>
-              <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded overflow-auto max-h-64 md:max-h-80 font-mono text-sm whitespace-pre-wrap">
-                {markdownResult}
+        {markdownResult && (
+          <section className="flex flex-col gap-4 w-full">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl md:text-2xl font-semibold">Extracted Text</h2>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600 dark:text-gray-400">
+                  {showRendered ? 'Rendered' : 'Raw'}
+                </span>
+                <button 
+                  onClick={toggleMarkdownView}
+                  className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200 dark:bg-gray-700"
+                >
+                  <span 
+                    className={`${showRendered ? 'translate-x-6' : 'translate-x-1'} inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+                  />
+                </button>
               </div>
             </div>
-          )}
-        </section>
+            
+            <div className="border rounded-lg p-6 bg-white dark:bg-gray-900 shadow-sm">
+              {showRendered ? (
+                <div className="prose dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: markdownToHtml(markdownResult) }} />
+              ) : (
+                <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded overflow-auto max-h-96 font-mono text-sm whitespace-pre-wrap">
+                  {markdownResult}
+                </div>
+              )}
+            </div>
+          </section>
+        )}
       </main>
 
       <footer className="mt-12 md:mt-16 text-center text-sm text-gray-500 dark:text-gray-400 max-w-3xl mx-auto">
@@ -139,4 +148,30 @@ export default function Home() {
       </footer>
     </div>
   );
+}
+
+// Simple markdown to HTML converter
+function markdownToHtml(markdown: string): string {
+  // This is a very basic implementation
+  // For a real app, you would use a proper markdown parser like marked.js
+  let html = markdown
+    // Headers
+    .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+    // Bold
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    // Italic
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    // Lists
+    .replace(/^- (.+)$/gm, '<li>$1</li>')
+    // Paragraphs
+    .replace(/^(?!<[hl]|<li)(.+)$/gm, '<p>$1</p>');
+  
+  // Replace consecutive list items with a proper list
+  html = html.replace(/(<li>.+<\/li>\n)+/g, (match) => {
+    return `<ul>${match}</ul>`;
+  });
+  
+  return html;
 }
