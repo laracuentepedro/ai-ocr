@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { useFileUpload } from '@/lib/hooks/useFileUpload';
 import { processFile, formatOcrResult } from '@/lib/services/ocrService';
+import './notion-markdown.css';
 
 export default function Home() {
   const [isUploading, setIsUploading] = useState(false);
@@ -132,7 +133,7 @@ export default function Home() {
             
             <div className="border rounded-lg p-6 bg-white dark:bg-gray-900 shadow-sm">
               {showRendered ? (
-                <div className="prose dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: markdownToHtml(markdownResult) }} />
+                <div className="notion-like" dangerouslySetInnerHTML={{ __html: markdownToHtml(markdownResult) }} />
               ) : (
                 <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded overflow-auto max-h-96 font-mono text-sm whitespace-pre-wrap">
                   {markdownResult}
