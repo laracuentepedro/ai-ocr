@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { useFileUpload } from '@/lib/hooks/useFileUpload';
 import { processFile, formatOcrResult } from '@/lib/services/ocrService';
+import { markdownToHtml } from '@/lib/utils/markdownParser';
 import './notion-markdown.css';
 
 export default function Home() {
@@ -189,96 +190,4 @@ export default function Home() {
       </footer>
     </div>
   );
-}
-
-// Enhanced markdown to HTML converter with table support
-function markdownToHtml(markdown: string): string {
-  // This is a basic implementation with table support added
-  // For a production app, consider using a proper markdown parser like marked.js
-  
-  // Process tables first (before other replacements)
-  let html = markdown;
-  
-  // Table detection and processing
-  // Look for patterns like: | Column1 | Column2 | Column3 |
-  // followed by | :-- | :-- | :-- | or similar separator row
-  // followed by data rows
-  html = processMarkdownTables(html);
-  
-  // Process other markdown elements
-  html = html
-    // Headers
-    .replace(/^# (.+)$/gm, '<h1>$1</h1>')
-    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
-    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
-    // Bold
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    // Italic
-    .replace(/\*(.+?)\*/g, '<em>$1</em>')
-    // Lists
-    .replace(/^- (.+)$/gm, '<li>$1</li>')
-    // Paragraphs (excluding tables and other HTML elements)
-    .replace(/^(?!<[htl]|<li|<table)(.+)$/gm, '<p>$1</p>');
-  
-  // Replace consecutive list items with a proper list
-  html = html.replace(/(<li>.+<\/li>\n)+/g, (match) => {
-    return `<ul>${match}</ul>`;
-  });
-  
-  return html;
-}
-
-// Function to process markdown tables
-function processMarkdownTables(markdown: string): string {
-  // Find table blocks in the markdown
-  // A table block starts with a line containing | characters
-  // followed by a separator line with dashes and optional colons for alignment
-  // followed by more lines with | characters
-  
-  // Regular expression to match markdown tables
-  const tableRegex = /^\|(.+)\|\r?\n\|([-:\|\s]+)\|\r?\n((\|.+\|\r?\n)+)/gm;
-  
-  return markdown.replace(tableRegex, (match, headerRow, separatorRow, bodyRows) => {
-    // Process the header row
-    const headers = headerRow.split('|').map(cell => cell.trim()).filter(cell => cell !== '');
-    
-    // Process the separator row to determine alignment
-    const alignments = separatorRow.split('|').map(cell => {
-      cell = cell.trim();
-      if (cell.startsWith(':') && cell.endsWith(':')) return 'center';
-      if (cell.endsWith(':')) return 'right';
-      return 'left';
-    }).filter(cell => cell !== '');
-    
-    // Process the body rows
-    const rows = bodyRows.trim().split('\n').map(row => {
-      const cells = row.split('|').map(cell => cell.trim()).filter(cell => cell !== '');
-      return cells;
-    });
-    
-    // Build the HTML table
-    let tableHtml = '<table>\n<thead>\n<tr>\n';
-    
-    // Add header cells
-    headers.forEach((header, index) => {
-      const alignment = alignments[index] || 'left';
-      tableHtml += `<th style="text-align: ${alignment}">${header}</th>\n`;
-    });
-    
-    tableHtml += '</tr>\n</thead>\n<tbody>\n';
-    
-    // Add body rows
-    rows.forEach(row => {
-      tableHtml += '<tr>\n';
-      row.forEach((cell, index) => {
-        const alignment = alignments[index] || 'left';
-        tableHtml += `<td style="text-align: ${alignment}">${cell}</td>\n`;
-      });
-      tableHtml += '</tr>\n';
-    });
-    
-    tableHtml += '</tbody>\n</table>';
-    
-    return tableHtml;
-  });
 }
