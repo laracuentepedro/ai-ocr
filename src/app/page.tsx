@@ -7,6 +7,7 @@ import { processFile, formatOcrResult } from '@/lib/services/ocrService';
 import { markdownToHtml } from '@/lib/utils/markdownParser';
 import './notion-markdown.css';
 import CopyableContent from '@/lib/components/CopyableContent';
+import Spinner from '@/lib/components/Spinner';
 
 export default function Home() {
   const [isUploading, setIsUploading] = useState(false);
@@ -142,7 +143,12 @@ export default function Home() {
                 disabled={isUploading}
                 className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors text-lg font-medium"
               >
-                {isUploading ? 'Processing...' : 'Process File'}
+                {isUploading ? (
+                  <span className="flex items-center justify-center">
+                    <Spinner size="sm" className="mr-2" />
+                    Processing...
+                  </span>
+                ) : 'Process File'}
               </button>
               <button
                 onClick={resetForm}
