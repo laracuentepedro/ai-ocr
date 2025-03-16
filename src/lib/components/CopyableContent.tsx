@@ -28,10 +28,10 @@ export default function CopyableContent({ children, content, className = '' }: C
 
   return (
     <div className={`relative group ${className}`}>
-      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity">
         <button
           onClick={handleCopy}
-          className="p-2 bg-gray-100 dark:bg-gray-800 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+          className="p-1.5 bg-gray-100 dark:bg-gray-800 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
           title="Copy to clipboard"
         >
           <svg
