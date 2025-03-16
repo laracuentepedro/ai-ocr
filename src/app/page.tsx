@@ -13,29 +13,31 @@ export default function Home() {
   const [showRendered, setShowRendered] = useState(true);
   
   const {
-    file,
-    preview,
+    files,
+    filesPreviews,
     error,
     fileInputRef,
     handleFileChange,
     handleDragOver,
     handleDrop,
     triggerFileInput,
-    resetForm: resetFileForm
-  } = useFileUpload();
+    resetForm: resetFileForm,
+    removeFile
+  } = useFileUpload({ multiple: true });
 
   const handleUpload = async () => {
-    if (!file) {
+    if (files.length === 0) {
       return;
     }
 
     setIsUploading(true);
     setApiError(null);
     
-    const response = await processFile(file);
+    const response = await processFile(files);
     
     if (response.success && response.result) {
-      setMarkdownResult(formatOcrResult(response.result, file.name));
+      const fileNames = files.map(file => file.name);
+      setMarkdownResult(formatOcrResult(response.result, fileNames));
     } else if (response.error) {
       setApiError(response.error);
     }
@@ -74,6 +76,7 @@ export default function Home() {
               onChange={handleFileChange} 
               ref={fileInputRef}
               accept="image/jpeg,image/png,image/jpg,application/pdf"
+              multiple={true}
             />
             <Image
               src="/upload.svg"
@@ -83,7 +86,7 @@ export default function Home() {
               className="mb-6 text-gray-400"
             />
             <p className="text-center mb-3 text-lg">
-              {file ? file.name : 'Drag & drop your file here or click to browse'}
+              {files.length > 0 ? `${files.length} file(s) selected` : 'Drag & drop your files here or click to browse'}
             </p>
             <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
               Supports JPEG, PNG, and PDF files
@@ -92,8 +95,45 @@ export default function Home() {
               <p className="mt-4 text-sm text-red-600 dark:text-red-400">{error || apiError}</p>
             )}
           </div>
+          
+          {files.length > 0 && (
+            <div className="mt-4">
+              <h3 className="text-lg font-medium mb-2">Selected Files:</h3>
+              <div className="space-y-2">
+                {filesPreviews.map((filePreview, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
+                    <div className="flex items-center">
+                      {filePreview.preview ? (
+                        <Image 
+                          src={filePreview.preview} 
+                          alt={filePreview.file.name} 
+                          width={40} 
+                          height={40} 
+                          className="mr-3 rounded object-cover"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 mr-3 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded">
+                          <span className="text-xs">PDF</span>
+                        </div>
+                      )}
+                      <span className="text-sm truncate max-w-xs">{filePreview.file.name}</span>
+                    </div>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeFile(index);
+                      }}
+                      className="text-red-500 hover:text-red-700 p-1"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
-          {file && (
+          {files.length > 0 && (
             <div className="flex gap-4 justify-center">
               <button
                 onClick={handleUpload}

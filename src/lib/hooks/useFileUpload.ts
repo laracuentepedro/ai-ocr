@@ -2,11 +2,17 @@ import { useState, useRef } from 'react';
 
 type FileUploadHookProps = {
   allowedTypes?: string[];
+  multiple?: boolean;
+};
+
+type FilePreview = {
+  file: File;
+  preview: string | null;
 };
 
 type FileUploadHookReturn = {
-  file: File | null;
-  preview: string | null;
+  files: File[];
+  filesPreviews: FilePreview[];
   error: string | null;
   fileInputRef: React.RefObject<HTMLInputElement>;
   handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -14,43 +20,68 @@ type FileUploadHookReturn = {
   handleDrop: (e: React.DragEvent<HTMLDivElement>) => void;
   triggerFileInput: () => void;
   resetForm: () => void;
+  removeFile: (index: number) => void;
 };
 
-export function useFileUpload({ allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'] }: FileUploadHookProps = {}): FileUploadHookReturn {
-  const [file, setFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
+export function useFileUpload({ allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'], multiple = false }: FileUploadHookProps = {}): FileUploadHookReturn {
+  const [files, setFiles] = useState<File[]>([]);
+  const [filesPreviews, setFilesPreviews] = useState<FilePreview[]>([]);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const validateAndProcessFile = (selectedFile: File | null) => {
+  const createPreviewForFile = (file: File): Promise<string | null> => {
+    return new Promise((resolve) => {
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          resolve(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        // For non-images (like PDFs), no preview
+        resolve(null);
+      }
+    });
+  };
+
+  const validateAndProcessFiles = async (selectedFiles: FileList | null) => {
     setError(null);
     
-    if (!selectedFile) return;
+    if (!selectedFiles || selectedFiles.length === 0) return;
     
-    // Check if file type is allowed
-    if (!allowedTypes.includes(selectedFile.type)) {
-      setError(`Please select a valid file type: ${allowedTypes.join(', ')}`);
-      return;
+    const newFiles: File[] = [];
+    const newPreviews: FilePreview[] = [];
+    
+    // Process each file
+    for (let i = 0; i < selectedFiles.length; i++) {
+      const file = selectedFiles[i];
+      
+      // Check if file type is allowed
+      if (!allowedTypes.includes(file.type)) {
+        setError(`Please select valid file types: ${allowedTypes.join(', ')}`);
+        return;
+      }
+      
+      newFiles.push(file);
+      
+      // Create preview for the file
+      const preview = await createPreviewForFile(file);
+      newPreviews.push({ file, preview });
     }
     
-    setFile(selectedFile);
-    
-    // Create preview for images only
-    if (selectedFile.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        setPreview(reader.result as string);
-      };
-      reader.readAsDataURL(selectedFile);
+    if (multiple) {
+      // Add to existing files if multiple is enabled
+      setFiles(prevFiles => [...prevFiles, ...newFiles]);
+      setFilesPreviews(prevPreviews => [...prevPreviews, ...newPreviews]);
     } else {
-      // For non-images (like PDFs), just clear the preview
-      setPreview(null);
+      // Replace existing files if multiple is disabled
+      setFiles(newFiles);
+      setFilesPreviews(newPreviews);
     }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0] || null;
-    validateAndProcessFile(selectedFile);
+    validateAndProcessFiles(e.target.files);
   };
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
@@ -61,9 +92,7 @@ export function useFileUpload({ allowedTypes = ['image/jpeg', 'image/png', 'imag
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    const droppedFile = e.dataTransfer.files?.[0] || null;
-    validateAndProcessFile(droppedFile);
+    validateAndProcessFiles(e.dataTransfer.files);
   };
 
   const triggerFileInput = () => {
@@ -71,23 +100,29 @@ export function useFileUpload({ allowedTypes = ['image/jpeg', 'image/png', 'imag
   };
 
   const resetForm = () => {
-    setFile(null);
-    setPreview(null);
+    setFiles([]);
+    setFilesPreviews([]);
     setError(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   };
+  
+  const removeFile = (index: number) => {
+    setFiles(prevFiles => prevFiles.filter((_, i) => i !== index));
+    setFilesPreviews(prevPreviews => prevPreviews.filter((_, i) => i !== index));
+  };
 
   return {
-    file,
-    preview,
+    files,
+    filesPreviews,
     error,
     fileInputRef,
     handleFileChange,
     handleDragOver,
     handleDrop,
     triggerFileInput,
-    resetForm
+    resetForm,
+    removeFile
   };
 }
