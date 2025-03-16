@@ -3,6 +3,7 @@ import { useState, useRef } from 'react';
 type FileUploadHookProps = {
   allowedTypes?: string[];
   multiple?: boolean;
+  appendMode?: boolean;
 };
 
 type FilePreview = {
@@ -23,7 +24,7 @@ type FileUploadHookReturn = {
   removeFile: (index: number) => void;
 };
 
-export function useFileUpload({ allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'], multiple = false }: FileUploadHookProps = {}): FileUploadHookReturn {
+export function useFileUpload({ allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'], multiple = false, appendMode = false }: FileUploadHookProps = {}): FileUploadHookReturn {
   const [files, setFiles] = useState<File[]>([]);
   const [filesPreviews, setFilesPreviews] = useState<FilePreview[]>([]);
   const [error, setError] = useState<string | null>(null);

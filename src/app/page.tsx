@@ -14,6 +14,7 @@ export default function Home() {
   const [markdownResult, setMarkdownResult] = useState<string | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
   const [showRendered, setShowRendered] = useState(true);
+  const [isAppendMode, setIsAppendMode] = useState(false);
   
   const {
     files,
@@ -26,7 +27,7 @@ export default function Home() {
     triggerFileInput,
     resetForm: resetFileForm,
     removeFile
-  } = useFileUpload({ multiple: true });
+  } = useFileUpload({ multiple: true, appendMode: isAppendMode });
 
   const handleUpload = async () => {
     if (files.length === 0) {
@@ -40,7 +41,23 @@ export default function Home() {
     
     if (response.success && response.result) {
       const fileNames = files.map(file => file.name);
-      setMarkdownResult(formatOcrResult(response.result, fileNames));
+      const newContent = formatOcrResult(response.result, fileNames);
+      
+      if (isAppendMode && markdownResult) {
+        // Append the new content to the existing markdown
+        setMarkdownResult(markdownResult + '\n\n---\n\n' + newContent);
+      } else {
+        // Set as new content
+        setMarkdownResult(newContent);
+      }
+      
+      // After successful processing, enable append mode for next uploads
+      if (!isAppendMode) {
+        setIsAppendMode(true);
+      }
+      
+      // Clear the files after processing to avoid duplicate work
+      resetFileForm();
     } else if (response.error) {
       setApiError(response.error);
     }
@@ -52,6 +69,7 @@ export default function Home() {
     resetFileForm();
     setMarkdownResult(null);
     setApiError(null);
+    setIsAppendMode(false);
   };
 
   const toggleMarkdownView = () => {
@@ -155,6 +173,23 @@ export default function Home() {
                 className="px-6 py-3 border border-gray-300 dark:border-gray-700 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-lg"
               >
                 Reset
+              </button>
+            </div>
+          )}
+          
+          {markdownResult && files.length === 0 && (
+            <div className="flex justify-center">
+              <button
+                onClick={() => {
+                  setIsAppendMode(true);
+                  triggerFileInput();
+                }}
+                className="px-6 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-lg font-medium flex items-center"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                </svg>
+                Append a new file
               </button>
             </div>
           )}
