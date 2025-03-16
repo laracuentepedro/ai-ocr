@@ -97,6 +97,6 @@ function formatSingleOcrResult(result: OcrResult, fileName: string): string {
     ocrText = result.pages.map(page => page.markdown).join('\n\n');
   }
   
-  // Create a simple markdown format with the extracted text
-  return `# OCR Result for ${fileName}\n\n${ocrText}`;
+  // Create a simple markdown format with the extracted text using a more subtle heading
+  return `### File: ${fileName}\n\n${ocrText}`;
 }
