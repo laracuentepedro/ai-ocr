@@ -1,5 +1,3 @@
-import { Mistral } from '@mistralai/mistralai';
-
 type OcrResult = {
   pages?: Array<{
     index: number;
@@ -36,7 +34,7 @@ export async function processFile(files: File | File[]): Promise<ProcessFileResp
     // Handle both single file and multiple files
     if (Array.isArray(files)) {
       // Multiple files
-      files.forEach((file, index) => {
+      files.forEach((file) => {
         formData.append(`files`, file);
       });
     } else {
@@ -96,7 +94,7 @@ function formatSingleOcrResult(result: OcrResult, fileName: string): string {
     ocrText = result.content;
   } else if (result.pages && Array.isArray(result.pages)) {
     // If the response has a pages array, concatenate text from all pages
-    ocrText = result.pages.map(page => page.markdown || page.text || '').join('\n\n');
+    ocrText = result.pages.map(page => page.markdown).join('\n\n');
   }
   
   // Create a simple markdown format with the extracted text

@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
             fileName: (file as File).name,
             content: buffer,
           },
-          purpose: "ocr"
+          purpose: "ocr" as const
         });
         
         // Get a signed URL for the uploaded file

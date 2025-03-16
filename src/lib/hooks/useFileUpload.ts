@@ -117,7 +117,7 @@ export function useFileUpload({ allowedTypes = ['image/jpeg', 'image/png', 'imag
     files,
     filesPreviews,
     error,
-    fileInputRef,
+    fileInputRef: fileInputRef as React.RefObject<HTMLInputElement>,
     handleFileChange,
     handleDragOver,
     handleDrop,
