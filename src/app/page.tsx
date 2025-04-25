@@ -233,6 +233,9 @@ export default function Home() {
 
       <footer className="mt-12 md:mt-16 text-center text-sm text-gray-500 dark:text-gray-400 max-w-3xl mx-auto">
         <p>AI OCR Tool - Powered by Next.js and Mistral AI</p>
+        <p className="mt-1">
+          Created by <a href="https://www.pedrolaracuente.com" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700 transition-colors">Pedro Laracuente</a>
+        </p>
       </footer>
     </div>
   );
