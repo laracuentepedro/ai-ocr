@@ -8,6 +8,35 @@
  * @param markdown The markdown text to convert
  * @returns HTML string
  */
+// Import MathJax script for rendering LaTeX expressions
+if (typeof document !== 'undefined') {
+  const script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+  script.async = true;
+  document.head.appendChild(script);
+}
+
+/**
+ * Process LaTeX-style math expressions in HTML
+ * @param html The HTML content to process
+ * @returns HTML with properly formatted math expressions
+ */
+function processMathExpressions(html: string): string {
+  if (!html) return '';
+  
+  // Process inline math expressions ($...$)
+  html = html.replace(/\$([^$\n]+?)\$/g, (match, expression) => {
+    return `<span class="math-inline">\\(${expression}\\)</span>`;
+  });
+  
+  // Process display math expressions ($$...$$)
+  html = html.replace(/\$\$([^$]+?)\$\$/g, (match, expression) => {
+    return `<div class="math-display">\\[${expression}\\]</div>`;
+  });
+  
+  return html;
+}
+
 export function markdownToHtml(markdown: string): string {
   // This is a basic implementation with table support added
   // For a production app, consider using a proper markdown parser like marked.js
@@ -33,13 +62,29 @@ export function markdownToHtml(markdown: string): string {
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
     // Lists
     .replace(/^- (.+)$/gm, '<li>$1</li>')
+    // Blockquotes
+    .replace(/^> (.+)$/gm, '<blockquote><p>$1</p></blockquote>')
     // Paragraphs (excluding tables and other HTML elements)
-    .replace(/^(?!<[htl]|<li|<table)(.+)$/gm, '<p>$1</p>');
+    .replace(/^(?!<[htlb]|<li|<table|<blockquote)(.+)$/gm, '<p>$1</p>');
   
   // Replace consecutive list items with a proper list
   html = html.replace(/(<li>.+<\/li>\n)+/g, (match) => {
     return `<ul>${match}</ul>`;
   });
+  
+  // Process math expressions after other markdown processing
+  html = processMathExpressions(html);
+  
+  // Add MathJax configuration to trigger rendering
+  if (typeof window !== 'undefined') {
+    setTimeout(() => {
+      // @ts-ignore - MathJax is loaded via CDN
+      if (window.MathJax) {
+        // @ts-ignore
+        window.MathJax.typeset();
+      }
+    }, 100);
+  }
   
   return html;
 }

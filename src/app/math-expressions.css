@@ -1,0 +1,31 @@
+/* Styles for mathematical expressions */
+.math-inline {
+  display: inline-block;
+  margin: 0 0.1em;
+  vertical-align: middle;
+}
+
+.math-display {
+  display: block;
+  margin: 1em 0;
+  text-align: center;
+  overflow-x: auto;
+}
+
+/* Style for bold numbers in financial statements */
+strong {
+  font-weight: 600;
+}
+
+/* Add some spacing for blockquotes containing notes about math content */
+blockquote {
+  background-color: rgba(0, 0, 255, 0.05);
+  border-left: 4px solid rgba(0, 0, 255, 0.2);
+  padding: 0.5em 1em;
+  margin: 1em 0;
+  color: #333;
+}
+
+blockquote p {
+  margin: 0;
+}

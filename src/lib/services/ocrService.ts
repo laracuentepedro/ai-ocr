@@ -82,6 +82,8 @@ export function formatOcrResult(result: OcrResult | OcrResult[] | undefined, fil
 }
 
 // Helper function to format a single OCR result
+import { processMathExpressions, containsMathContent } from '../utils/mathExpressionParser';
+
 function formatSingleOcrResult(result: OcrResult, fileName: string): string {
   let ocrText = '';
   
@@ -95,6 +97,14 @@ function formatSingleOcrResult(result: OcrResult, fileName: string): string {
   } else if (result.pages && Array.isArray(result.pages)) {
     // If the response has a pages array, concatenate text from all pages
     ocrText = result.pages.map(page => page.markdown).join('\n\n');
+  }
+  
+  // Process mathematical expressions and format numbers in financial statements
+  ocrText = processMathExpressions(ocrText);
+  
+  // Add a note if mathematical content is detected
+  if (containsMathContent(ocrText)) {
+    ocrText = `> Note: This document contains mathematical expressions formatted in LaTeX syntax. Use the rendered view for proper display.\n\n${ocrText}`;
   }
   
   // Create a simple markdown format with the extracted text using a more subtle heading

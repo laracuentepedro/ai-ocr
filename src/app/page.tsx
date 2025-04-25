@@ -6,8 +6,10 @@ import { useFileUpload } from '@/lib/hooks/useFileUpload';
 import { processFile, formatOcrResult } from '@/lib/services/ocrService';
 import { markdownToHtml } from '@/lib/utils/markdownParser';
 import './notion-markdown.css';
+import './math-expressions.css';
 import CopyableContent from '@/lib/components/CopyableContent';
 import Spinner from '@/lib/components/Spinner';
+import MathInfo from '@/lib/components/MathInfo';
 
 export default function Home() {
   const [isUploading, setIsUploading] = useState(false);
@@ -213,6 +215,7 @@ export default function Home() {
                 </button>
               </div>
             </div>
+            <MathInfo />
             
             <div className="border rounded-lg p-6 bg-white dark:bg-gray-900 shadow-sm">
               {showRendered ? (
